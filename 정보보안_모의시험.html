@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보보안 모의시험 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .exam-selector {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .exam-selector h2 {
+            margin-bottom: 20px;
+            color: #1e3c72;
+        }
+
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .exam-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .exam-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .exam-card.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .exam-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .exam-card p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .start-button {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .exam-content {
+            padding: 30px;
+            display: none;
+        }
+
+        .exam-content.active {
+            display: block;
+        }
+
+        .exam-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exam-info {
+            font-size: 1.1em;
+            color: #495057;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .question-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #e7f0ff;
+            font-weight: bold;
+        }
+
+        .option.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .option.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .result-section {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        .score-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        .result-table th,
+        .result-table td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .result-table th {
+            background: #667eea;
+            color: white;
+            text-align: center;
+        }
+
+        .result-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .result-table td:first-child,
+        .result-table td:nth-child(2) {
+            text-align: center;
+        }
+
+        .correct-mark {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .incorrect-mark {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .question-text-result {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .answer-options-result {
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .explanation-result {
+            margin-top: 8px;
+            padding: 10px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .exam-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .exam-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 정보보안 모의시험 시스템</h1>
+            <p>실전 기반 예상 문제 - 총 240문제</p>
+        </div>
+
+        <!-- 시험 선택 화면 -->
+        <div id="exam-selection" class="exam-selector">
+            <h2>🎯 시험 과목 선택</h2>
+            <div class="exam-grid">
+                <div class="exam-card" onclick="selectExam('networkLinuxBasics')">
+                    <h3>🌐 네트워크 & 리눅스 기본기술</h3>
+                    <p>TCP/IP, OSI 7계층, Linux 명령어</p>
+                    <p><strong>60문제</strong></p>
+                </div>
+                <div class="exam-card" onclick="selectExam('virtualizationCloud')">
+                    <h3>☁️ 가상화기술과 클라우드</h3>
+                    <p>Docker, Kubernetes, 컨테이너</p>
+                    <p><strong>60문제</strong></p>
+                </div>
+                <div class="exam-card" onclick="selectExam('pentestingDefense')">
+                    <h3>⚔️ 모의해킹 실무</h3>
+                    <p>공격 기법, Exploit, 침투 테스트</p>
+                    <p><strong>60문제</strong></p>
+                </div>
+                <div class="exam-card" onclick="selectExam('vulnerabilityAssessment')">
+                    <h3>🔍 취약점 진단 및 대응</h3>
+                    <p>CVE 분석, 보안 설정, 패치</p>
+                    <p><strong>60문제</strong></p>
+                </div>
+            </div>
+            <div class="start-button">
+                <button class="btn btn-primary" onclick="startExam()" id="startBtn" disabled>시험 시작</button>
+                <button class="btn btn-secondary" onclick="selectAllExams()">전체 과목 (240문제)</button>
+            </div>
+        </div>
+
+        <!-- 시험 진행 화면 -->
+        <div id="exam-taking" class="exam-content">
+            <div class="exam-header">
+                <div class="exam-info">
+                    <span id="current-exam-title"></span> |
+                    <span id="question-progress"></span>
+                </div>
+                <div class="timer" id="timer">00:00</div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-bar">0%</div>
+            </div>
+
+            <div id="questions-container"></div>
+
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="submitExam()">채점하기</button>
+                <button class="btn btn-secondary" onclick="returnToSelection()">시험 선택으로 돌아가기</button>
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="exam-result" class="result-section">
+            <h2>🎉 시험 결과</h2>
+            <div class="score-display" id="score-display"></div>
+            <div id="result-details"></div>
+            <div class="navigation">
+                <button class="btn btn-primary" onclick="reviewAnswers()">문제 및 해설 다시 보기</button>
+                <button class="btn btn-secondary" onclick="returnToSelection()">다른 시험 보기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 문제 데이터 로드 -->
+    <script src="모의시험_문제은행.js"></script>
+
+    <!-- 메인 스크립트 -->
+    <script>
+        let selectedExamTypes = [];
+        let currentQuestions = [];
+        let userAnswers = {};
+        let startTime = null;
+        let timerInterval = null;
+
+        // 시험 선택
+        function selectExam(examType) {
+            const card = event.currentTarget;
+
+            if (selectedExamTypes.includes(examType)) {
+                selectedExamTypes = selectedExamTypes.filter(e => e !== examType);
+                card.classList.remove('selected');
+            } else {
+                selectedExamTypes.push(examType);
+                card.classList.add('selected');
+            }
+
+            document.getElementById('startBtn').disabled = selectedExamTypes.length === 0;
+        }
+
+        // 전체 과목 선택
+        function selectAllExams() {
+            selectedExamTypes = ['networkLinuxBasics', 'virtualizationCloud', 'pentestingDefense', 'vulnerabilityAssessment'];
+            document.querySelectorAll('.exam-card').forEach(card => {
+                card.classList.add('selected');
+            });
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        // 시험 시작
+        function startExam() {
+            if (selectedExamTypes.length === 0) {
+                alert('시험 과목을 선택해주세요!');
+                return;
+            }
+
+            // 선택된 과목들의 문제를 합침
+            currentQuestions = [];
+            selectedExamTypes.forEach(examType => {
+                const exam = examQuestions[examType];
+                exam.questions.forEach((q, idx) => {
+                    currentQuestions.push({
+                        ...q,
+                        examType: examType,
+                        examTitle: exam.title,
+                        originalIndex: idx
+                    });
+                });
+            });
+
+            userAnswers = {};
+            startTime = Date.now();
+
+            // 화면 전환
+            document.getElementById('exam-selection').style.display = 'none';
+            document.getElementById('exam-taking').classList.add('active');
+
+            // 타이머 시작
+            startTimer();
+
+            // 문제 렌더링
+            renderQuestions();
+
+            // 헤더 정보 업데이트
+            const titles = selectedExamTypes.map(t => examQuestions[t].title).join(', ');
+            document.getElementById('current-exam-title').textContent = titles;
+            updateProgress();
+        }
+
+        // 타이머
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        // 문제 렌더링
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            currentQuestions.forEach((question, qIdx) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `question-${qIdx}`;
+
+                let optionsHtml = '';
+                question.options.forEach((option, optIdx) => {
+                    optionsHtml += `
+                        <label class="option" onclick="selectOption(${qIdx}, ${optIdx})">
+                            <input type="radio" name="q${qIdx}" value="${optIdx}">
+                            <span>${optIdx + 1}. ${option}</span>
+                        </label>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="question-number">문제 ${qIdx + 1}</div>
+                    <div class="question-text">${question.q}</div>
+                    <div class="options" id="options-${qIdx}">
+                        ${optionsHtml}
+                    </div>
+                    <div class="explanation" id="explanation-${qIdx}">
+                        <strong>💡 해설:</strong> ${question.explanation}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // 답안 선택
+        function selectOption(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+
+            // 선택 표시
+            const options = document.querySelectorAll(`#options-${qIdx} .option`);
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[optIdx].classList.add('selected');
+
+            updateProgress();
+        }
+
+        // 진행률 업데이트
+        function updateProgress() {
+            const answered = Object.keys(userAnswers).length;
+            const total = currentQuestions.length;
+            const percentage = Math.round((answered / total) * 100);
+
+            document.getElementById('question-progress').textContent =
+                `${answered} / ${total} 문제`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-bar').textContent = `${percentage}%`;
+        }
+
+        // 채점
+        function submitExam() {
+            if (Object.keys(userAnswers).length < currentQuestions.length) {
+                if (!confirm('아직 풀지 않은 문제가 있습니다. 채점하시겠습니까?')) {
+                    return;
+                }
+            }
+
+            clearInterval(timerInterval);
+
+            let correct = 0;
+            let incorrect = 0;
+
+            currentQuestions.forEach((question, qIdx) => {
+                const userAnswer = userAnswers[qIdx];
+                const correctAnswer = question.correct;
+                const options = document.querySelectorAll(`#options-${qIdx} .option`);
+
+                if (userAnswer === correctAnswer) {
+                    correct++;
+                    if (userAnswer !== undefined) {
+                        options[userAnswer].classList.add('correct');
+                    }
+                } else {
+                    incorrect++;
+                    if (userAnswer !== undefined) {
+                        options[userAnswer].classList.add('incorrect');
+                    }
+                    options[correctAnswer].classList.add('correct');
+                }
+
+                // 해설 표시
+                document.getElementById(`explanation-${qIdx}`).classList.add('show');
+            });
+
+            // 결과 화면으로 이동
+            showResults(correct, incorrect);
+        }
+
+        // 결과 표시
+        function showResults(correct, incorrect) {
+            const total = currentQuestions.length;
+            const score = Math.round((correct / total) * 100);
+
+            document.getElementById('exam-taking').classList.remove('active');
+            document.getElementById('exam-result').classList.add('active');
+
+            let gradeText = '';
+            let gradeColor = '';
+            if (score >= 90) {
+                gradeText = '🏆 우수';
+                gradeColor = '#28a745';
+            } else if (score >= 70) {
+                gradeText = '👍 양호';
+                gradeColor = '#667eea';
+            } else if (score >= 60) {
+                gradeText = '📝 보통';
+                gradeColor = '#ffc107';
+            } else {
+                gradeText = '💪 더 노력';
+                gradeColor = '#dc3545';
+            }
+
+            document.getElementById('score-display').innerHTML =
+                `<div style="color: ${gradeColor}">${gradeText}</div><div>${score}점 (${correct}/${total})</div>`;
+
+            // 상세 결과 테이블
+            let tableHtml = `
+                <table class="result-table">
+                    <tr>
+                        <th style="width: 60px;">번호</th>
+                        <th style="width: 80px;">결과</th>
+                        <th>문제 및 해설</th>
+                    </tr>
+            `;
+
+            currentQuestions.forEach((question, qIdx) => {
+                const userAnswer = userAnswers[qIdx];
+                const correctAnswer = question.correct;
+                const isCorrect = userAnswer === correctAnswer;
+
+                // 답안 옵션 표시 (정답 표시 추가)
+                let optionsHtml = '<div class="answer-options-result">';
+                question.options.forEach((option, optIdx) => {
+                    let optionStyle = '';
+                    let marker = '';
+
+                    if (optIdx === correctAnswer) {
+                        optionStyle = 'color: #28a745; font-weight: bold;';
+                        marker = ' ✓ <strong>[정답]</strong>';
+                    }
+
+                    if (optIdx === userAnswer && userAnswer !== correctAnswer) {
+                        optionStyle = 'color: #dc3545;';
+                        marker = ' ✗ <strong>[선택]</strong>';
+                    }
+
+                    if (optIdx === userAnswer && userAnswer === correctAnswer) {
+                        marker = ' ✓ <strong>[정답/선택]</strong>';
+                    }
+
+                    optionsHtml += `<div style="${optionStyle}">${optIdx + 1}. ${option}${marker}</div>`;
+                });
+                optionsHtml += '</div>';
+
+                tableHtml += `
+                    <tr>
+                        <td>${qIdx + 1}</td>
+                        <td class="${isCorrect ? 'correct-mark' : 'incorrect-mark'}">
+                            ${isCorrect ? '⭕ 정답' : '❌ 오답'}
+                        </td>
+                        <td>
+                            <div class="question-text-result">${question.q}</div>
+                            ${optionsHtml}
+                            <div class="explanation-result">
+                                <strong>💡 해설:</strong> ${question.explanation}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += '</table>';
+            document.getElementById('result-details').innerHTML = tableHtml;
+        }
+
+        // 오답 확인
+        function reviewAnswers() {
+            document.getElementById('exam-result').classList.remove('active');
+            document.getElementById('exam-taking').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // 시험 선택으로 돌아가기
+        function returnToSelection() {
+            clearInterval(timerInterval);
+            selectedExamTypes = [];
+            currentQuestions = [];
+            userAnswers = {};
+
+            document.querySelectorAll('.exam-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            document.getElementById('exam-taking').classList.remove('active');
+            document.getElementById('exam-result').classList.remove('active');
+            document.getElementById('exam-selection').style.display = 'block';
+            document.getElementById('startBtn').disabled = true;
+        }
+    </script>
+</body>
+</html>
