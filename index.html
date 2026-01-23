@@ -622,7 +622,7 @@
                 term: 'XSS (Cross-Site Scripting)',
                 category: 'pentest',
                 description: '웹 페이지에 악성 스크립트를 삽입하여 사용자의 브라우저에서 실행되도록 하는 공격입니다. Reflected XSS는 즉시 실행되고, Stored XSS는 DB에 저장되어 여러 사용자에게 영향을 줍니다.',
-                example: '<script>alert(document.cookie)</script>\n<img src=x onerror="alert(1)">',
+                example: '&lt;script&gt;alert(document.cookie)&lt;/script&gt;\\n&lt;img src=x onerror="alert(1)"&gt;',
                 related: '관련 문제: 모의해킹 14, 취약점 진단 19번'
             },
             {
@@ -742,6 +742,8 @@
 
         function showStudyGuide() {
             document.getElementById('exam-selection').style.display = 'none';
+            document.getElementById('exam-taking').classList.remove('active');
+            document.getElementById('exam-result').classList.remove('active');
             document.getElementById('study-guide').classList.add('active');
             displayKeywords();
         }
@@ -1089,6 +1091,7 @@
 
             document.getElementById('exam-taking').classList.remove('active');
             document.getElementById('exam-result').classList.remove('active');
+            document.getElementById('study-guide').classList.remove('active');
             document.getElementById('exam-selection').style.display = 'block';
             document.getElementById('startBtn').disabled = true;
         }
