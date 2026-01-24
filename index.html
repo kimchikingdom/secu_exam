@@ -466,6 +466,7 @@
                 <button class="btn btn-primary" onclick="startExam()" id="startBtn" disabled>시험 시작</button>
                 <button class="btn btn-secondary" onclick="selectAllExams()">전체 과목 (240문제)</button>
                 <button class="btn btn-secondary" onclick="showStudyGuide()" style="background: #28a745;">📚 학습 자료</button>
+                <button class="btn btn-secondary" onclick="showAdvancedExams()" style="background: #dc3545; color: white;">🔥 심화 문제</button>
             </div>
         </div>
 
@@ -528,10 +529,44 @@
                 </div>
             </div>
         </div>
+
+        <!-- 심화 문제 선택 화면 -->
+        <div id="advanced-exam-selection" class="exam-content">
+            <div class="exam-selector">
+                <h2>🔥 심화 문제 - 시나리오 기반 & 복합 개념</h2>
+                <p style="color: #666; margin-bottom: 20px;">실무 상황과 복합 개념을 다루는 고난이도 문제입니다.</p>
+
+                <div class="exam-grid">
+                    <div class="exam-card" onclick="selectAdvancedExam('network_advanced')">
+                        <h3>🌐 네트워크 & 클라우드 심화</h3>
+                        <p>15문제 | 시나리오 기반 네트워크 문제 해결</p>
+                    </div>
+                    <div class="exam-card" onclick="selectAdvancedExam('cloud_advanced')">
+                        <h3>☁️ 가상화 & 클라우드 심화</h3>
+                        <p>15문제 | Kubernetes 아키텍처 심화</p>
+                    </div>
+                    <div class="exam-card" onclick="selectAdvancedExam('hacking_advanced')">
+                        <h3>🎯 모의해킹 심화</h3>
+                        <p>15문제 | 복합 공격 기법과 우회</p>
+                    </div>
+                    <div class="exam-card" onclick="selectAdvancedExam('vulnerability_advanced')">
+                        <h3>🛡️ 취약점 진단 심화</h3>
+                        <p>15문제 | 최신 CVE 및 대응 전략</p>
+                    </div>
+                </div>
+
+                <div class="start-button">
+                    <button class="btn btn-primary" onclick="startAdvancedExam()" id="advancedStartBtn" disabled>심화 시험 시작</button>
+                    <button class="btn btn-secondary" onclick="selectAllAdvancedExams()">전체 심화 (60문제)</button>
+                    <button class="btn btn-secondary" onclick="returnToSelection()">기본 시험으로 돌아가기</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 문제 데이터 로드 -->
     <script src="questions.js"></script>
+    <script src="advanced-questions.js"></script>
 
     <!-- 용어 사전 데이터 -->
     <script>
@@ -1092,8 +1127,75 @@
             document.getElementById('exam-taking').classList.remove('active');
             document.getElementById('exam-result').classList.remove('active');
             document.getElementById('study-guide').classList.remove('active');
+            document.getElementById('advanced-exam-selection').classList.remove('active');
             document.getElementById('exam-selection').style.display = 'block';
             document.getElementById('startBtn').disabled = true;
+        }
+
+        // 심화 문제 화면 표시
+        function showAdvancedExams() {
+            document.getElementById('exam-selection').style.display = 'none';
+            document.getElementById('exam-taking').classList.remove('active');
+            document.getElementById('exam-result').classList.remove('active');
+            document.getElementById('study-guide').classList.remove('active');
+            document.getElementById('advanced-exam-selection').classList.add('active');
+        }
+
+        // 심화 시험 선택
+        let selectedAdvancedExams = [];
+        function selectAdvancedExam(examType) {
+            const cards = document.querySelectorAll('#advanced-exam-selection .exam-card');
+            cards.forEach((card, index) => {
+                if (card.onclick.toString().includes(examType)) {
+                    if (selectedAdvancedExams.includes(examType)) {
+                        selectedAdvancedExams = selectedAdvancedExams.filter(e => e !== examType);
+                        card.classList.remove('selected');
+                    } else {
+                        selectedAdvancedExams.push(examType);
+                        card.classList.add('selected');
+                    }
+                }
+            });
+
+            document.getElementById('advancedStartBtn').disabled = selectedAdvancedExams.length === 0;
+        }
+
+        // 전체 심화 문제 선택
+        function selectAllAdvancedExams() {
+            selectedAdvancedExams = ['network_advanced', 'cloud_advanced', 'hacking_advanced', 'vulnerability_advanced'];
+            const cards = document.querySelectorAll('#advanced-exam-selection .exam-card');
+            cards.forEach(card => card.classList.add('selected'));
+            document.getElementById('advancedStartBtn').disabled = false;
+        }
+
+        // 심화 시험 시작
+        function startAdvancedExam() {
+            currentQuestions = [];
+            selectedAdvancedExams.forEach(examType => {
+                currentQuestions = currentQuestions.concat(
+                    advancedQuestions.examQuestions[examType].questions.map((q, index) => ({
+                        ...q,
+                        examType: examType,
+                        originalIndex: index
+                    }))
+                );
+            });
+
+            // 문제 섞기
+            currentQuestions.sort(() => Math.random() - 0.5);
+
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            startTime = Date.now();
+
+            document.getElementById('advanced-exam-selection').classList.remove('active');
+            document.getElementById('exam-taking').classList.add('active');
+
+            const title = selectedAdvancedExams.length === 4 ? '전체 심화 문제' : '심화 문제';
+            document.getElementById('current-exam-title').textContent = title;
+
+            renderQuestions();
+            startTimer();
         }
     </script>
 </body>
