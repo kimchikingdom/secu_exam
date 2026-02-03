@@ -936,34 +936,60 @@
             const container = document.getElementById('questions-container');
             container.innerHTML = '';
 
+            console.log(`렌더링 시작: ${currentQuestions.length}개 문제`);
+
             currentQuestions.forEach((question, qIdx) => {
-                const card = document.createElement('div');
-                card.className = 'question-card';
-                card.id = `question-${qIdx}`;
+                try {
+                    const card = document.createElement('div');
+                    card.className = 'question-card';
+                    card.id = `question-${qIdx}`;
 
-                let optionsHtml = '';
-                question.options.forEach((option, optIdx) => {
-                    optionsHtml += `
-                        <label class="option" onclick="selectOption(${qIdx}, ${optIdx})">
-                            <input type="radio" name="q${qIdx}" value="${optIdx}">
-                            <span>${optIdx + 1}. ${option}</span>
-                        </label>
+                    let optionsHtml = '';
+                    question.options.forEach((option, optIdx) => {
+                        // HTML 특수문자 이스케이프
+                        const escapedOption = option
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#39;');
+
+                        optionsHtml += `
+                            <label class="option" onclick="selectOption(${qIdx}, ${optIdx})">
+                                <input type="radio" name="q${qIdx}" value="${optIdx}">
+                                <span>${optIdx + 1}. ${escapedOption}</span>
+                            </label>
+                        `;
+                    });
+
+                    const escapedQuestion = question.q
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+
+                    const escapedExplanation = question.explanation
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+
+                    card.innerHTML = `
+                        <div class="question-number">문제 ${qIdx + 1}</div>
+                        <div class="question-text">${escapedQuestion}</div>
+                        <div class="options" id="options-${qIdx}">
+                            ${optionsHtml}
+                        </div>
+                        <div class="explanation" id="explanation-${qIdx}">
+                            <strong> 해설:</strong> ${escapedExplanation}
+                        </div>
                     `;
-                });
 
-                card.innerHTML = `
-                    <div class="question-number">문제 ${qIdx + 1}</div>
-                    <div class="question-text">${question.q}</div>
-                    <div class="options" id="options-${qIdx}">
-                        ${optionsHtml}
-                    </div>
-                    <div class="explanation" id="explanation-${qIdx}">
-                        <strong> 해설:</strong> ${question.explanation}
-                    </div>
-                `;
-
-                container.appendChild(card);
+                    container.appendChild(card);
+                } catch (error) {
+                    console.error(`문제 ${qIdx + 1} 렌더링 오류:`, error);
+                }
             });
+
+            console.log(`렌더링 완료: ${container.children.length}개 카드 생성됨`);
         }
 
         // 답안 선택
@@ -1008,6 +1034,11 @@
                 const correctAnswer = question.correct;
                 const options = document.querySelectorAll(`#options-${qIdx} .option`);
 
+                // 디버깅: 정답 인덱스 범위 확인
+                if (correctAnswer >= options.length || correctAnswer < 0) {
+                    console.error(`문제 ${qIdx + 1}: 정답 인덱스 오류 - correct: ${correctAnswer}, options: ${options.length}`);
+                }
+
                 if (userAnswer === correctAnswer) {
                     correct++;
                     if (userAnswer !== undefined) {
@@ -1018,11 +1049,17 @@
                     if (userAnswer !== undefined) {
                         options[userAnswer].classList.add('incorrect');
                     }
-                    options[correctAnswer].classList.add('correct');
+                    // 정답 표시 (인덱스 범위 확인)
+                    if (correctAnswer >= 0 && correctAnswer < options.length) {
+                        options[correctAnswer].classList.add('correct');
+                    }
                 }
 
                 // 해설 표시
-                document.getElementById(`explanation-${qIdx}`).classList.add('show');
+                const explanationElem = document.getElementById(`explanation-${qIdx}`);
+                if (explanationElem) {
+                    explanationElem.classList.add('show');
+                }
             });
 
             // 결과 화면으로 이동
@@ -1071,6 +1108,16 @@
                 const correctAnswer = question.correct;
                 const isCorrect = userAnswer === correctAnswer;
 
+                // HTML 이스케이프 함수
+                const escapeHtml = (text) => {
+                    return text
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                };
+
                 // 답안 옵션 표시 (정답 표시 추가)
                 let optionsHtml = '<div class="answer-options-result">';
                 question.options.forEach((option, optIdx) => {
@@ -1091,9 +1138,13 @@
                         marker = ' ✓ <strong>[정답/선택]</strong>';
                     }
 
-                    optionsHtml += `<div style="${optionStyle}">${optIdx + 1}. ${option}${marker}</div>`;
+                    const escapedOption = escapeHtml(option);
+                    optionsHtml += `<div style="${optionStyle}">${optIdx + 1}. ${escapedOption}${marker}</div>`;
                 });
                 optionsHtml += '</div>';
+
+                const escapedQuestion = escapeHtml(question.q);
+                const escapedExplanation = escapeHtml(question.explanation);
 
                 tableHtml += `
                     <tr>
@@ -1102,10 +1153,10 @@
                             ${isCorrect ? '⭕ 정답' : '❌ 오답'}
                         </td>
                         <td>
-                            <div class="question-text-result">${question.q}</div>
+                            <div class="question-text-result">${escapedQuestion}</div>
                             ${optionsHtml}
                             <div class="explanation-result">
-                                <strong> 해설:</strong> ${question.explanation}
+                                <strong> 해설:</strong> ${escapedExplanation}
                             </div>
                         </td>
                     </tr>
