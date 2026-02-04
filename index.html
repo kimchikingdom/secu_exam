@@ -471,10 +471,15 @@
                     <p>CVE 분석, 보안 설정, 패치</p>
                     <p><strong>60문제</strong></p>
                 </div>
+                <div class="exam-card" onclick="selectExam('security_monitoring')">
+                    <h3> 보안관제 실무</h3>
+                    <p>로그 모니터링, SIEM, SOC, 사고 대응</p>
+                    <p><strong>60문제</strong></p>
+                </div>
             </div>
             <div class="start-button">
                 <button class="btn btn-primary" onclick="startExam()" id="startBtn" disabled>시험 시작</button>
-                <button class="btn btn-secondary" onclick="selectAllExams()">전체 과목 (240문제)</button>
+                <button class="btn btn-secondary" onclick="selectAllExams()">전체 과목 (300문제)</button>
                 <button class="btn btn-secondary" onclick="showStudyGuide()">학습 자료</button>
                 <button class="btn btn-secondary" onclick="showAdvancedExams()">심화 문제</button>
             </div>
@@ -563,11 +568,15 @@
                         <h3> 취약점 진단 심화</h3>
                         <p>15문제 | 최신 CVE 및 대응 전략</p>
                     </div>
+                    <div class="exam-card" onclick="selectAdvancedExam('monitoring_advanced')">
+                        <h3> 보안관제 심화</h3>
+                        <p>15문제 | 로그 상관분석 및 사고 대응</p>
+                    </div>
                 </div>
 
                 <div class="start-button">
                     <button class="btn btn-primary" onclick="startAdvancedExam()" id="advancedStartBtn" disabled>심화 시험 시작</button>
-                    <button class="btn btn-secondary" onclick="selectAllAdvancedExams()">전체 심화 (60문제)</button>
+                    <button class="btn btn-secondary" onclick="selectAllAdvancedExams()">전체 심화 (75문제)</button>
                     <button class="btn btn-secondary" onclick="returnToSelection()">기본 시험으로 돌아가기</button>
                 </div>
             </div>
@@ -577,6 +586,7 @@
     <!-- 문제 데이터 로드 -->
     <script src="questions.js"></script>
     <script src="advanced-questions.js"></script>
+    <script src="monitoring-questions.js"></script>
 
     <!-- 용어 사전 데이터 -->
     <script>
@@ -874,7 +884,7 @@
 
         // 전체 과목 선택
         function selectAllExams() {
-            selectedExamTypes = ['networkLinuxBasics', 'virtualizationCloud', 'pentestingDefense', 'vulnerabilityAssessment'];
+            selectedExamTypes = ['networkLinuxBasics', 'virtualizationCloud', 'pentestingDefense', 'vulnerabilityAssessment', 'security_monitoring'];
             document.querySelectorAll('.exam-card').forEach(card => {
                 card.classList.add('selected');
             });
@@ -891,15 +901,24 @@
             // 선택된 과목들의 문제를 합침
             currentQuestions = [];
             selectedExamTypes.forEach(examType => {
-                const exam = examQuestions[examType];
-                exam.questions.forEach((q, idx) => {
-                    currentQuestions.push({
-                        ...q,
-                        examType: examType,
-                        examTitle: exam.title,
-                        originalIndex: idx
+                let exam;
+                // 보안관제 과목은 monitoringQuestions에서 가져오기
+                if (examType === 'security_monitoring') {
+                    exam = monitoringQuestions.examQuestions[examType];
+                } else {
+                    exam = examQuestions[examType];
+                }
+
+                if (exam) {
+                    exam.questions.forEach((q, idx) => {
+                        currentQuestions.push({
+                            ...q,
+                            examType: examType,
+                            examTitle: exam.title,
+                            originalIndex: idx
+                        });
                     });
-                });
+                }
             });
 
             userAnswers = {};
@@ -916,7 +935,13 @@
             renderQuestions();
 
             // 헤더 정보 업데이트
-            const titles = selectedExamTypes.map(t => examQuestions[t].title).join(', ');
+            const titles = selectedExamTypes.map(t => {
+                if (t === 'security_monitoring') {
+                    return monitoringQuestions.examQuestions[t].title;
+                } else {
+                    return examQuestions[t].title;
+                }
+            }).join(', ');
             document.getElementById('current-exam-title').textContent = titles;
             updateProgress();
         }
@@ -1223,7 +1248,7 @@
 
         // 전체 심화 문제 선택
         function selectAllAdvancedExams() {
-            selectedAdvancedExams = ['network_advanced', 'cloud_advanced', 'hacking_advanced', 'vulnerability_advanced'];
+            selectedAdvancedExams = ['network_advanced', 'cloud_advanced', 'hacking_advanced', 'vulnerability_advanced', 'monitoring_advanced'];
             const cards = document.querySelectorAll('#advanced-exam-selection .exam-card');
             cards.forEach(card => card.classList.add('selected'));
             document.getElementById('advancedStartBtn').disabled = false;

@@ -681,6 +681,180 @@ const advancedQuestions = {
                     explanation: 'VA는 스캐너로 취약점을 식별하는 반면, Pentest는 실제 공격 기법으로 침투하여 영향도를 증명합니다.'
                 }
             ]
+        },
+        monitoring_advanced: {
+            title: '보안관제 심화',
+            questions: [
+                {
+                    q: 'SIEM에서 여러 로그 소스를 연관 분석한 결과, 다음 이벤트가 순차적으로 발견되었다: (1) 외부 IP에서 SSH 로그인 실패 100회, (2) 동일 IP에서 SSH 로그인 성공 1회, (3) 해당 계정으로 sudo 명령 실행, (4) 내부 다른 서버로 SSH 연결 시도. 이것은 어떤 공격 시나리오인가?',
+                    options: [
+                        '단순 비밀번호 오타',
+                        'Brute Force 공격 성공 후 Lateral Movement 시도',
+                        'DDoS 공격',
+                        '정상적인 관리자 작업'
+                    ],
+                    correct: 1,
+                    explanation: 'Brute Force로 초기 침투에 성공한 후, 권한 상승(sudo) 시도와 내부 네트워크로 측면 이동(Lateral Movement)을 시도하는 전형적인 APT 공격 패턴입니다. 이런 다단계 공격은 단일 로그만으로는 탐지 어렵고 SIEM의 상관분석이 필수입니다.'
+                },
+                {
+                    q: '웹 서버 access.log에서 "GET /admin.php?id=1\' OR \'1\'=\'1" 패턴이 발견되었으나 응답 코드는 200 OK이고, 이후 동일 IP에서 "GET /admin.php?id=1; DROP TABLE users--" 요청이 들어왔다. 가장 먼저 수행해야 할 조치는?',
+                    options: [
+                        '웹 애플리케이션의 SQL Injection 방어 상태 긴급 점검 및 DB 무결성 확인',
+                        '로그 삭제',
+                        '서버 재시작',
+                        '해당 IP 차단만 수행'
+                    ],
+                    correct: 0,
+                    explanation: '200 OK 응답은 SQL Injection 시도가 정상 처리되었을 가능성을 의미합니다. 첫 번째는 인증 우회 시도, 두 번째는 데이터 삭제 시도입니다. 즉시 WAF/방화벽으로 해당 IP를 차단하고, 웹 애플리케이션의 입력값 검증과 Prepared Statement 사용 여부를 확인하며, 데이터베이스 테이블 무결성을 긴급 점검해야 합니다.'
+                },
+                {
+                    q: 'SIEM 대시보드에 초당 10,000개의 알람이 발생하여 실제 공격 탐지가 불가능하다. 이 문제를 해결하기 위한 가장 효과적인 접근 방법은?',
+                    options: [
+                        '모든 알람 비활성화',
+                        'SIEM 제거',
+                        'False Positive 원인 분석 후 룰 튜닝 및 알람 우선순위 설정',
+                        '알람 무시'
+                    ],
+                    correct: 2,
+                    explanation: 'False Positive(오탐)가 과도하면 진짜 공격을 놓치게 됩니다. 우선 알람 발생 원인을 분류하고(정상 트래픽, 설정 오류 등), 룰 임계값을 조정하며, CVSS 점수나 자산 중요도에 따라 알람을 Critical/High/Medium/Low로 우선순위를 부여해야 합니다. 화이트리스트 등록과 베이스라인 학습도 효과적입니다.'
+                },
+                {
+                    q: '다음 중 APT(Advanced Persistent Threat) 공격의 특징으로 가장 적절한 것은?',
+                    options: [
+                        '짧은 시간 내 대량 트래픽 발생',
+                        '장기간에 걸쳐 은밀하게 진행되며 특정 목표 지향',
+                        '랜덤한 대상 공격',
+                        '단순 반복 공격'
+                    ],
+                    correct: 1,
+                    explanation: 'APT는 특정 조직/기밀을 목표로 장기간(수개월~수년) 은밀히 진행됩니다. 초기 침투 후 내부에 숨어 권한을 확대하고 데이터를 수집하며, 탐지를 피하기 위해 정상 트래픽처럼 행동합니다. DDoS처럼 눈에 띄는 공격과 달리, 로그 상관분석과 이상 행위 탐지로만 발견 가능합니다.'
+                },
+                {
+                    q: '한 서버의 /var/log/auth.log에서 새로운 사용자 "admin2"가 생성되었고, 이후 해당 계정으로 sudo 권한이 부여되었으며, crontab에 의심스러운 스크립트가 등록되었다. 이것이 의미하는 것은?',
+                    options: [
+                        '정상적인 계정 생성',
+                        '시스템 업데이트',
+                        '일시적 버그',
+                        '공격자가 Persistence(지속성) 확보를 위해 백도어 계정 생성'
+                    ],
+                    correct: 3,
+                    explanation: '공격자가 시스템 재부팅이나 패치 후에도 접근 권한을 유지하기 위해 백도어 계정을 생성하고 높은 권한을 부여한 것입니다. crontab 등록은 주기적으로 악성 코드를 실행하거나 C&C 서버와 통신하기 위한 것입니다. 즉시 계정 삭제, crontab 제거, 시스템 전체 포렌식이 필요합니다.'
+                },
+                {
+                    q: '침해사고 대응 중 "Containment(억제)" 단계에서 수행해야 하는 가장 적절한 조치는?',
+                    options: [
+                        '네트워크 격리 및 추가 피해 확산 차단',
+                        '피해 시스템을 즉시 삭제',
+                        '사고 보고서 작성',
+                        '시스템 업그레이드'
+                    ],
+                    correct: 0,
+                    explanation: 'Containment 단계에서는 피해를 더 이상 확산시키지 않는 것이 목표입니다. 감염 서버를 네트워크에서 격리하고, 공격자의 C&C 통신을 차단하며, 다른 시스템으로의 Lateral Movement를 방지합니다. 단, 증거 수집을 위해 즉시 종료하지 않고 메모리 덤프 등 휘발성 데이터를 먼저 확보할 수 있습니다.'
+                },
+                {
+                    q: 'netstat 명령어로 ESTABLISHED 상태의 의심스러운 외부 IP 연결을 발견했다. 해당 프로세스를 식별하기 위한 추가 명령어는?',
+                    options: [
+                        'ls -al',
+                        'cat /etc/passwd',
+                        'ps -ef | grep [PID] 또는 lsof -i:[PORT]',
+                        'df -h'
+                    ],
+                    correct: 2,
+                    explanation: 'netstat -antp로 확인한 PID를 ps -ef로 조회하거나, lsof -i:포트번호로 해당 포트를 사용하는 프로세스를 확인합니다. /proc/[PID]/exe를 확인하면 실행파일 경로도 알 수 있습니다. 의심되면 해당 바이너리의 해시값을 VirusTotal에서 검사할 수 있습니다.'
+                },
+                {
+                    q: '웹 서버 로그에 "POST /upload.php" 요청 후 "GET /uploads/shell.php" 요청이 반복적으로 발생한다. 이것은 어떤 공격의 징후인가?',
+                    options: [
+                        '정상적인 파일 업로드',
+                        'File Upload 취약점을 통한 웹쉘 업로드 및 원격 명령 실행',
+                        'XSS 공격',
+                        'CSRF 공격'
+                    ],
+                    correct: 1,
+                    explanation: 'File Upload 취약점을 악용해 PHP 웹쉘을 업로드한 후, 해당 웹쉘에 접근하여 서버에서 임의의 명령을 실행하는 공격입니다. 즉시 /uploads/ 디렉토리를 점검하고 의심 파일을 격리하며, 업로드 기능의 파일 타입 검증과 실행 권한을 확인해야 합니다.'
+                },
+                {
+                    q: 'SIEM에서 로그 보관 정책을 수립할 때 고려해야 할 가장 중요한 요소는?',
+                    options: [
+                        '디스크 공간만 고려',
+                        '1주일만 보관',
+                        '로그 삭제',
+                        '법적 규제 준수 기간, 포렌식 분석 필요 기간, 스토리지 비용의 균형'
+                    ],
+                    correct: 3,
+                    explanation: '금융권은 전자금융거래법상 5년, 개인정보보호법은 최소 6개월 보관이 필요합니다. 또한 침해사고는 발견까지 평균 수개월이 걸리므로 포렌식을 위해 최소 6~12개월 보관이 권장됩니다. 비용 절감을 위해 최근 3개월은 Hot Storage, 이후는 Cold Storage로 이관하는 계층화 전략을 사용합니다.'
+                },
+                {
+                    q: 'SOC 운영 중 동시에 10건의 High 등급 알람이 발생했다. 우선순위를 결정하는 기준으로 가장 적절한 것은?',
+                    options: [
+                        '랜덤 선택',
+                        '가장 오래된 것부터',
+                        '자산 중요도, 공격 단계, 잠재적 영향도를 종합 평가',
+                        '모두 무시'
+                    ],
+                    correct: 2,
+                    explanation: 'Crown Jewel(핵심 자산)에 대한 공격이 최우선이며, 공격 단계가 초기 정찰인지 실제 데이터 유출인지에 따라 긴급도가 다릅니다. CVSS 점수, 자산 가치, 현재 공격 진행 상황을 종합해 Risk = Likelihood × Impact 공식으로 우선순위를 매깁니다.'
+                },
+                {
+                    q: 'Fileless Malware(파일리스 악성코드) 공격을 탐지하기 어려운 이유는?',
+                    options: [
+                        '디스크에 파일을 남기지 않고 메모리에서만 실행',
+                        '속도가 느려서',
+                        '암호화되어서',
+                        '크기가 작아서'
+                    ],
+                    correct: 0,
+                    explanation: 'Fileless 공격은 PowerShell, WMI 같은 정상 시스템 도구를 악용하여 메모리에서만 동작하므로 안티바이러스로 탐지가 어렵습니다. 탐지를 위해 EDR 솔루션으로 프로세스 행위를 모니터링하고, PowerShell 로깅을 활성화하며, 의심스러운 스크립트 실행을 탐지해야 합니다.'
+                },
+                {
+                    q: '다음 로그 패턴 중 SQL Injection 공격이 아닌 것은?',
+                    options: [
+                        'GET /search?q=SELECT * FROM users WHERE id=1',
+                        'GET /search?q=1\' OR \'1\'=\'1',
+                        'GET /search?q=1\'; DROP TABLE users--',
+                        'GET /search?q=1\' UNION SELECT password FROM admin--'
+                    ],
+                    correct: 0,
+                    explanation: '첫 번째는 검색어에 SELECT 문자열이 포함된 정상 쿼리일 수 있습니다. 나머지는 SQL 문법 구조를 조작하려는 명백한 공격 시도입니다. WAF는 이런 패턴을 탐지하지만, False Positive를 줄이기 위해 컨텍스트를 고려해야 합니다.'
+                },
+                {
+                    q: 'SIEM과 Threat Intelligence Platform을 연동하는 주요 목적은?',
+                    options: [
+                        '로그 저장 공간 확보',
+                        '알려진 악성 IP, 도메인, 파일 해시를 기반으로 위협 조기 탐지',
+                        '네트워크 속도 향상',
+                        '비용 절감'
+                    ],
+                    correct: 1,
+                    explanation: 'Threat Intelligence Feed(IoC: Indicators of Compromise)를 SIEM에 연동하면 전 세계에서 보고된 악성 IP, C&C 서버, 악성코드 해시와 내부 로그를 실시간으로 대조하여 위협을 조기에 발견할 수 있습니다. MISP, AlienVault OTX, VirusTotal 등을 연동합니다.'
+                },
+                {
+                    q: '침해사고 분석 중 "Lateral Movement" 탐지를 위해 중점적으로 확인해야 할 로그는?',
+                    options: [
+                        '웹 서버 access.log만',
+                        '이메일 로그만',
+                        'DNS 로그만',
+                        'Windows Event Log의 4624(로그인 성공), 4648(명시적 자격증명 사용), SMB/RDP 연결 로그'
+                    ],
+                    correct: 3,
+                    explanation: '공격자가 초기 침투 후 내부 다른 시스템으로 이동할 때 남는 흔적은 Windows Event 4624(로그인), 4648(RunAs 같은 명시적 자격증명), 4672(특수 권한 로그인), SMB(445 포트), RDP(3389 포트) 연결 로그입니다. Pass-the-Hash, Pass-the-Ticket 공격도 이 로그로 탐지합니다.'
+                },
+                {
+                    q: '보안 모니터링에서 Baseline(기준선)을 설정하는 목적은?',
+                    options: [
+                        '로그 삭제',
+                        '디스크 공간 확보',
+                        '정상 행위 패턴을 학습하여 이상 징후(Anomaly) 탐지',
+                        '네트워크 속도 향상'
+                    ],
+                    correct: 2,
+                    explanation: 'Baseline은 평소 네트워크 트래픽, 로그인 패턴, 프로세스 실행 등 정상 상태를 학습하여 기준으로 삼습니다. 이를 벗어나는 행위(새벽 시간 대량 데이터 전송, 평소 사용 안 하던 관리자 계정 로그인 등)를 Anomaly로 탐지하여 Zero-Day 공격도 발견할 수 있습니다.'
+                }
+            ]
         }
     }
 };
+// 브라우저 전역 변수로 명시적 노출
+if (typeof window !== 'undefined') {
+    window.advancedQuestions = advancedQuestions;
+}
